@@ -10,14 +10,17 @@ import { Component, OnInit } from '@angular/core';
 export class PostListComponent implements OnInit {
 
   posts: Post[] = [];
+  isLoading = false;
 
   constructor(private postsService: PostsService) { }
 
   ngOnInit(): void {
+    this.isLoading =true;
     this.postsService.getPosts();
     this.postsService.getPostsUpdated().subscribe(
       (posts) => {
         this.posts = posts;
+        this.isLoading = false;
       }
     );
   }
