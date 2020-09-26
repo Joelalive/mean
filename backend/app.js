@@ -1,8 +1,18 @@
 const express = require('express');
-
 const bodyParser = require('body-parser');
+const mongoose = require('mongoose');
+
+const Post = require('./models/post');
 
 const app = express();
+
+mongoose.connect("mongodb+srv://joel:34JmTN1dk8Dg72g2@cluster0.zhkav.mongodb.net/node-mean?retryWrites=true&w=majority", { useNewUrlParser: true , useUnifiedTopology: true})
+.then(() => {
+    console.log('Database Connected')
+})
+.catch(() => {
+    console.log('Connection failed')
+});
 
 app.use(bodyParser.json());
 
@@ -20,26 +30,38 @@ app.use((req, res, next) => {
 });
 
 app.get('/api/posts', (req, res, next) => {
-    const posts = [
-        {
-            id: 'asd657sad', title: 'first post', content: 'server post'
-        },
-        {
-            id: 'asd213123', title: 'second post', content: 'server post 2'
-        }
-    ];
-    res.status(200).json({
-        message: 'posts fetch successfully.',
-        posts: posts
+   
+    Post.find()
+    .then((documents) => {
+        res.status(200).json({
+            message: 'posts fetch successfully.',
+            posts: documents
+        });
     });
 });
 
 app.post('/api/posts', (req, res, next) => {
-    const post = req.body;
-    console.log(post);
-    res.status(201).json({
-        message:'post added successfully.'
+    const post = new Post({
+        title: req.body.title,
+        content: req.body.content
     });
+    post.save().then((createdPost) => {
+        console.log(post);
+        res.status(201).json({
+            message:'post added successfully.',
+            postId: createdPost._id
+        });
+    });
+});
+
+
+app.delete('/api/posts/:id', (req, res, next) => {
+    Post.deleteOne({ _id: req.params.id}).then((result) => {
+        console.log(result);
+        res.status(200).json({
+            message: 'Post deleted successfully.'
+        });
+    })
 });
 
 
