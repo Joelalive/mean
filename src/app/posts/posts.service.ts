@@ -1,6 +1,7 @@
 import { Post } from './post.model';
 import { Injectable } from '@angular/core';
 import { Subject } from 'rxjs';
+import { HttpClient } from '@angular/common/http';
 
 @Injectable({
   providedIn: 'root'
@@ -11,10 +12,15 @@ export class PostsService {
 
   private postsUpdated = new Subject<Post[]>();
 
-  constructor() { }
+  constructor(private http: HttpClient) { }
 
   getPosts() {
-    return this.posts.slice();
+    this.http.get<{message: string, posts: Post[]}>('http://localhost:3000/api/posts').subscribe(
+      (postsData) => {
+        this.posts = postsData.posts; 
+        this.postsUpdated.next(this.posts.slice());
+      }
+    );
   }
 
   getPostsUpdated() {
@@ -22,7 +28,12 @@ export class PostsService {
   }
 
   addPost(post: Post) {
-    this.posts.push(post);
-    this.postsUpdated.next(this.posts.slice());
+    this.http.post<{message: string}>('http://localhost:3000/api/posts', post).subscribe(
+      (resData) => {
+        console.log(resData.message);
+        this.posts.push(post);
+        this.postsUpdated.next(this.posts.slice());
+      }
+    );
   }
 }
